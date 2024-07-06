@@ -1,7 +1,10 @@
-from django.shortcuts import get_object_or_404
-from django.views.generic import ListView, DetailView
+from django.shortcuts import get_object_or_404, render
+from django.views import View
+from django.views.generic import ListView
 from category.models import Category
-from  .models import Product
+from .models import Product
+from cart.models import CartItem
+from cart.views import _get_session_id
 
 
 class ProductListView(ListView):
@@ -14,12 +17,15 @@ class ProductListView(ListView):
         category_slug = self.kwargs.get('category_slug')
 
         if category_slug:
-            category =get_object_or_404(Category, slug=category_slug)
+            category = get_object_or_404(Category, slug=category_slug)
             queryset = Product.objects.filter(category=category)
         return queryset
 
-class ProductDetailView(DetailView):
-    model = Product
-    template_name = 'store/product_detail.html'
-    context_object_name = 'product'
-    slug_url_kwarg = 'product_slug'
+
+class ProductDetailView(View):
+    def get(self, request, *args, **kwargs):
+        product = get_object_or_404(Product, slug=self.kwargs['product_slug'])
+        in_cart = CartItem.objects.filter(
+         product=product, cart__cart_id=_get_session_id(request))
+        return render(request, 'store/product_detail.html',
+                      {'product': product, 'in_cart': in_cart})
