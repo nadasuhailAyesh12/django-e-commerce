@@ -19,4 +19,4 @@ class Product(models.Model):
         return reverse('product_details', kwargs={'product_slug': self.slug})
 
     def __str__(self):
-     return self.name
+        return self.name
