@@ -76,13 +76,19 @@
           >Store</a
         >
         <div class="col-lg col-md-6 col-sm-12 col">
-          <form action="#" class="search">
+          <form
+            action="{% url 'products_list' %}"
+            class="search"
+            id="searchForm"
+          >
             <div class="input-group w-100">
               <input
                 type="text"
                 class="form-control"
                 style="width: 60%"
                 placeholder="Search"
+                name="keyword"
+                id="keyword"
               />
 
               <div class="input-group-append">
@@ -125,3 +131,19 @@
   <!-- header-main .// -->
 </header>
 <!-- section-header.// -->
+<script>
+  document
+    .getElementById("searchForm")
+    .addEventListener("submit", function (event) {
+      // Get the category_slug from the current URL
+      const currentUrl = window.location.pathname;
+      const keyword = document.getElementById("keyword").value;
+      let searchUrl = currentUrl;
+
+      if (keyword) {
+        searchUrl += `?keyword=${encodeURIComponent(keyword)}`;
+      }
+      window.location.href = searchUrl;
+      event.preventDefault();
+    });
+</script>

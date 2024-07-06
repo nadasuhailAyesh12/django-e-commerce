@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 from django.views.generic import ListView
@@ -11,14 +12,19 @@ class ProductListView(ListView):
     model = Product
     template_name = 'store/store.html'
     context_object_name = 'products'
+    paginate_by = 6
 
     def get_queryset(self):
-        queryset = Product.objects.filter(is_available=True)
+        queryset = Product.objects.filter(
+            is_available=True).order_by('-created_at')
         category_slug = self.kwargs.get('category_slug')
-
+        if 'keyword' in self.request.GET:
+            keyword = self.request.GET['keyword']
+            queryset = queryset.filter(
+                Q(name__icontains=keyword) | Q(description__icontains=keyword))
         if category_slug:
             category = get_object_or_404(Category, slug=category_slug)
-            queryset = Product.objects.filter(category=category)
+            queryset = queryset.filter(category=category)
         return queryset
 
 
