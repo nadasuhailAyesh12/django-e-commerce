@@ -1,18 +1,15 @@
-{% extends 'base.html'%} {% load static %} {% block content %}
-
+{% extends 'base.html' %} {% load static %} {% block content %}
 <!-- ============================ COMPONENT 1 ================================= -->
 <section class="section-content padding-y bg">
   <div class="container">
     {% if not cartItems %}
     <h2 class="text-center">Your shopping cart is empty</h2>
     <br />
-
     <div class="text-center">
       <a href="{% url 'products_list' %}" class="btn btn-primary"
         >Continue Shopping</a
       >
     </div>
-
     {% else %}
     <div class="row">
       <aside class="col-lg-9">
@@ -33,20 +30,23 @@
                   <figure class="itemside align-items-center">
                     <div class="aside">
                       <img
-                        src="{{cartItem.product.images.url}}"
+                        src="{{ cartItem.product.images.url }}"
                         class="img-sm"
                       />
                     </div>
                     <figcaption class="info">
                       <a
-                        href="{{cartItem.product.get_url}}"
+                        href="{{ cartItem.product.get_url }}"
                         class="title text-dark"
-                        >{{cartItem.product.name}}</a
+                        >{{ cartItem.product.name }}</a
                       >
+                      {% if cartItem.variations %} {% for variation in
+                      cartItem.variations.all %}
                       <p class="text-muted small">
-                        Matrix: 25 Mpx <br />
-                        Brand: Canon
+                        {{variation.variation_category|capfirst}}: {{
+                        variation.variation_value }} <br />
                       </p>
+                      {% endfor %} {% endif %}
                     </figcaption>
                   </figure>
                 </td>
@@ -67,12 +67,12 @@
                       <input
                         type="text"
                         class="form-control"
-                        value="{{cartItem.quantity}}"
+                        value="{{ cartItem.quantity }}"
                         readonly
                       />
                       <div class="input-group-append">
                         <a
-                          href='{% url "add_cart" cartItem.product.id %}'
+                          href='{% url "increment_cart" cartItem.id %}'
                           class="btn btn-light"
                           type="button"
                           id="button-minus"
@@ -87,9 +87,9 @@
                 </td>
                 <td>
                   <div class="price-wrap">
-                    <var class="price">${{cartItem.id}}</var>
+                    <var class="price">${{ cartItem.sub_total}}</var>
                     <small class="text-muted">
-                      ${{cartItem.product.price}} each
+                      ${{ cartItem.product.price }} each
                     </small>
                   </div>
                   <!-- price-wrap .// -->
@@ -98,17 +98,16 @@
                   <a
                     href="{% url 'remove_cart_item' cartItem.id %}"
                     class="btn btn-danger"
-                  >
-                    Remove</a
+                    onclick="return confirm('Are you sure you want to delete this item ?')"
+                    >Remove</a
                   >
                 </td>
               </tr>
-              {% endfor %} {% endif %}
+              {% endfor %}
             </tbody>
           </table>
         </div>
         <!-- card.// -->
-        {% if cartItems %}
       </aside>
       <!-- col.// -->
       <aside class="col-lg-3">
@@ -116,28 +115,25 @@
           <div class="card-body">
             <dl class="dlist-align">
               <dt>Total price:</dt>
-              <dd class="text-right">${{totalPrice}}</dd>
+              <dd class="text-right">${{ totalPrice }}</dd>
             </dl>
             <dl class="dlist-align">
               <dt>Tax:</dt>
-              <dd class="text-right">${{tax}}</dd>
+              <dd class="text-right">${{ tax }}</dd>
             </dl>
             <dl class="dlist-align">
               <dt>Total:</dt>
               <dd class="text-right text-dark b">
-                <strong>${{grandTotal}}</strong>
+                <strong>${{ grandTotal }}</strong>
               </dd>
             </dl>
             <hr />
             <p class="text-center mb-3">
-              <img
-                src="{% static './images/misc/payments.png' %}"
-                height="26"
-              />
+              <img src="{% static 'images/misc/payments.png' %}" height="26" />
             </p>
-            <a href="./place-order.html" class="btn btn-primary btn-block">
-              Checkout
-            </a>
+            <a href="./place-order.html" class="btn btn-primary btn-block"
+              >Checkout</a
+            >
             <a href="{% url 'products_list' %}" class="btn btn-light btn-block"
               >Continue Shopping</a
             >
@@ -147,12 +143,11 @@
         <!-- card.// -->
       </aside>
       <!-- col.// -->
-      {% endif %}
     </div>
     <!-- row.// -->
-    <!-- ============================ COMPONENT 1 END .// ================================= -->
+    {% endif %}
   </div>
   <!-- container .//  -->
 </section>
-{% endblock %}
 <!-- ========================= SECTION CONTENT END// ========================= -->
+{% endblock %}

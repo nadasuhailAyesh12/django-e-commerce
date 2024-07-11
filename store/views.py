@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views import View
 from django.views.generic import ListView
 from category.models import Category
-from .models import Product
+from .models import Product, Variation
 from cart.models import CartItem
 from cart.views import _get_session_id
 
@@ -33,5 +33,9 @@ class ProductDetailView(View):
         product = get_object_or_404(Product, slug=self.kwargs['product_slug'])
         in_cart = CartItem.objects.filter(
          product=product, cart__cart_id=_get_session_id(request))
+        variationOBj = Variation.objects.filter(product=product)
+        colors = [variation.variation_value for variation in variationOBj
+                  if variation.variation_category == 'color']
         return render(request, 'store/product_detail.html',
-                      {'product': product, 'in_cart': in_cart})
+                      {'product': product, 'in_cart': in_cart,
+                       'colors': colors})
