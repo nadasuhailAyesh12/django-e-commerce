@@ -1,5 +1,5 @@
-from django.contrib import messages
-from django.shortcuts import render
+from django.contrib import auth, messages
+from django.shortcuts import redirect, render
 from django.views import View
 
 from .forms import SignUpForm
@@ -23,3 +23,28 @@ class RegisterView(View):
                 request, "Error creating account,please see the error below!"
             )
             return render(request, "accounts/register.html", {"form": form})
+
+
+class LoginView(View):
+    def get(self, request):
+        return render(request, "accounts/login.html")
+
+    def post(self, request):
+        email = request.POST["email"]
+        password = request.POST["password"]
+        user = auth.authenticate(email=email, password=password)
+
+        if user is not None:
+            auth.login(request, user)
+            messages.success(request, "Login successful!")
+            return render(request, "home.html")
+        else:
+            messages.error(request, "Invalid email or password!")
+            return render(request, "accounts/login.html")
+
+
+class LogoutView(View):
+    def get(self, request):
+        auth.logout(request)
+        messages.success(request, "Logged out successfully!")
+        return redirect("login")
