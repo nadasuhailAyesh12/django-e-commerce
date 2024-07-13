@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
-from store.models import Product,Variation
-from cart.models import CartItem, Cart
+
+from cart.models import Cart, CartItem
+from store.models import Product, Variation
 
 
 def _get_session_id(request):
@@ -14,30 +15,30 @@ def _get_session_id(request):
 
 class CartListView(View):
     def get(self, request, *args, **kwargs):
-        cart = Cart.objects.filter(
-            cart_id=_get_session_id(self.request)).first()
-        if (cart):
+        cart = Cart.objects.filter(cart_id=_get_session_id(self.request)).first()
+        if cart:
             cartItems = cart.cartitem_set.filter(is_active=True)
-            if (not cartItems.exists()):
+            if not cartItems.exists():
                 cartItems = []
                 totalPrice = 0
                 tax = 0
                 grandTotal = 0
             else:
                 totalPrice = sum(
-                    item.product.price * item.quantity for item in cartItems)
+                    item.product.price * item.quantity for item in cartItems
+                )
                 tax = (2 * totalPrice) / 100
                 grandTotal = tax + totalPrice
         else:
             cartItems = []
 
         context = {
-            'cartItems': cartItems,
-            'totalPrice': totalPrice,
-            'tax': tax,
-            'grandTotal': grandTotal,
-            }
-        return render(request, 'store/cart.html', context)
+            "cartItems": cartItems,
+            "totalPrice": totalPrice,
+            "tax": tax,
+            "grandTotal": grandTotal,
+        }
+        return render(request, "store/cart.html", context)
 
 
 class AddCartView(View):
@@ -46,18 +47,18 @@ class AddCartView(View):
         return set(cart_item_variations) == set(product_variations)
 
     def post(self, request, *args, **kwargs):
-        product = get_object_or_404(Product, id=self.kwargs['product_id'])
+        product = get_object_or_404(Product, id=self.kwargs["product_id"])
         product_variations = []
-
+        print("data is ", request.data)
         for item in request.POST:
             key = item
-            if key != 'csrfmiddlewaretoken':
+            if key != "csrfmiddlewaretoken":
                 value = request.POST[key].strip()
                 variation = Variation.objects.get(
-                        product=product,
-                        variation_category__iexact=key,
-                        variation_value__iexact=value
-                    )
+                    product=product,
+                    variation_category__iexact=key,
+                    variation_value__iexact=value,
+                )
                 product_variations.append(variation)
 
         existing_cart_item = None
@@ -76,36 +77,35 @@ class AddCartView(View):
 
         else:
             new_cart_item = CartItem.objects.create(
-                    cart=cart,
-                    product=product,
-                    quantity=1
-                )
-            new_cart_item.variations.set(product_variations)  # Use .set() to assign variations
+                cart=cart, product=product, quantity=1
+            )
+            new_cart_item.variations.set(
+                product_variations
+            )  # Use .set() to assign variations
 
-        return redirect('cart')
+        return redirect("cart")
 
 
 class decrementCartview(View):
     def get(self, request, *args, **kwargs):
-        cart_item = get_object_or_404(CartItem, id=self.kwargs['cart_item_id'])
+        cart_item = get_object_or_404(CartItem, id=self.kwargs["cart_item_id"])
         if cart_item.quantity > 1:
             cart_item.quantity -= 1
             cart_item.save()
-        return redirect('cart')
+        return redirect("cart")
 
 
 class incrementCartview(View):
     def get(self, request, *args, **kwargs):
-        cart_item = get_object_or_404(CartItem,
-                                      id=self.kwargs['cart_item_id'])
+        cart_item = get_object_or_404(CartItem, id=self.kwargs["cart_item_id"])
         if cart_item.quantity < cart_item.product.stock:
             cart_item.quantity += 1
             cart_item.save()
-        return redirect('cart')
+        return redirect("cart")
 
 
 class remove_cart_item(View):
     def get(self, request, *args, **kwargs):
-        cart_item = get_object_or_404(CartItem, id=self.kwargs['cart_item_id'])
+        cart_item = get_object_or_404(CartItem, id=self.kwargs["cart_item_id"])
         cart_item.delete()
-        return redirect('cart')
+        return redirect("cart")
